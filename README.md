@@ -65,4 +65,4 @@ Dự án được tổ chức thành các phân hệ rõ ràng:
 Mở trực tiếp file `Web_Dashboard/index.html` trên trình duyệt web để theo dõi luồng trạng thái từ hệ thống và xem các cảnh báo theo thời gian thực.
 
 ---
-📝 *Dự án Đồ án Kỹ thuật (DAKT) thực hiện bởi Nhóm sinh viên.*
+📝 *Dự án Đồ án Kỹ thuật (DAKT) thực hiện bởi Nhóm sinh viên gồm: Nguyễn Hoàng Phúc và Nguyễn Thành Tài.*
