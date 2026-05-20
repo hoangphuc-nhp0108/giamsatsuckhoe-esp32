@@ -16,11 +16,9 @@ import traceback
 from functools import wraps
 
 # ==================== CẤU HÌNH HỆ THỐNG ====================
-YOLO_MODEL_PATH = 'yolov8s-pose.pt'
-PRESENCE_SCALER_PATH = 'presence_scaler.joblib'
-PRESENCE_CLASSIFIER_PATH = 'presence_classifier.joblib'
-POSTURE_SCALER_PATH = 'posture_scaler_2class.joblib'
-POSTURE_CLASSIFIER_PATH = 'posture_classifier_2class.joblib'
+YOLO_MODEL_PATH = 'yolo11n-pose.pt'
+POSTURE_SCALER_PATH = 'posture_scaler.joblib'
+POSTURE_CLASSIFIER_PATH = 'posture_classifier.joblib'
 
 # CẤU HÌNH MỀM DẺO - CÓ THỂ THAY ĐỔI QUA API
 INCORRECT_POSTURE_THRESHOLD_SECONDS = 30
@@ -131,11 +129,9 @@ def timeout_handler(signum, frame):
 # --- TẢI MODEL ---
 try:
     yolo_model = YOLO(YOLO_MODEL_PATH)
-    p_scaler = joblib.load(PRESENCE_SCALER_PATH)
-    p_clf = joblib.load(PRESENCE_CLASSIFIER_PATH)
     h_scaler = joblib.load(POSTURE_SCALER_PATH)
     h_clf = joblib.load(POSTURE_CLASSIFIER_PATH)
-    print("✅ Tải 4 models AI 2 Tầng thành công!")
+    print("✅ Tải models AI (YOLO + SVM) thành công!")
     if torch.cuda.is_available(): 
         print(f"🚀 Đang sử dụng GPU")
         # Tối ưu hóa cho GPU
@@ -355,27 +351,9 @@ def add_health_record():
     except Exception as e:
         print(f"Lỗi thêm bản ghi lịch sử: {e}")
 
-# --- HÀM XỬ LÝ AI CỐT LÕI (34 Features) ---
-def extract_features_34(keypoints_obj, img_shape):
-    try:
-        height, width = img_shape[:2]
-        kps = keypoints_obj.data[0].cpu().numpy() 
-        normalized_kps = []
-        for kp in kps:
-            x, y, conf = kp
-            if conf > CONFIDENCE_THRESHOLD: 
-                normalized_kps.extend([x/width, y/height])
-            else: 
-                normalized_kps.extend([0, 0])
-        while len(normalized_kps) < 34: 
-            normalized_kps.append(0)
-        return np.array(normalized_kps[:34])
-    except: 
-        return np.zeros(34)
-
-# --- HÀM DỰ ĐOÁN THEO VÙNG MA THUẬT - ĐÃ TỐI ƯU HÓA ---
+# --- HÀM DỰ ĐOÁN THEO VÙNG MA THUẬT (Sử dụng Model Mới 5 điểm) ---
 def predict_posture_cascaded(frame):
-    """Logic Vùng Ma Thuật - Tối ưu hóa tốc độ xử lý"""
+    """Logic Vùng Ma Thuật - 1-stage AI (YOLO + SVM)"""
     current_status = 2  # Mặc định: Vắng mặt
     
     try:
@@ -385,7 +363,7 @@ def predict_posture_cascaded(frame):
         ZONE_X1, ZONE_Y1 = int(w * ZONE_X1_RATIO), int(h * ZONE_Y1_RATIO)
         ZONE_X2, ZONE_Y2 = int(w * ZONE_X2_RATIO), int(h * ZONE_Y2_RATIO)
 
-        # 2. CHẠY YOLO với cấu hình tối ưu hóa tốc độ
+        # 2. CHẠY YOLO
         results = yolo_model(frame, verbose=False, conf=0.5, iou=0.5)
         
         best_person_idx = -1
@@ -393,40 +371,44 @@ def predict_posture_cascaded(frame):
         
         if len(results) > 0 and results[0].boxes is not None and len(results[0].boxes) > 0:
             boxes = results[0].boxes.xyxy.cpu().numpy()
-            keypoints = results[0].keypoints
             
-            # 3. LỌC NGƯỜI TRONG VÙNG MA THUẬT
-            for i, box in enumerate(boxes):
-                # Tính tâm của người đó
-                bx1, by1, bx2, by2 = box[:4]
-                center_x = (bx1 + bx2) / 2
-                center_y = (by1 + by2) / 2
-                
-                # Kiểm tra tâm có nằm trong ZONE không?
-                if (ZONE_X1 < center_x < ZONE_X2) and (ZONE_Y1 < center_y < ZONE_Y2):
-                    # Người này nằm trong vùng giám sát!
-                    area = (bx2 - bx1) * (by2 - by1)
+            # Kiểm tra keypoints hợp lệ
+            if results[0].keypoints is not None and len(results[0].keypoints) > 0:
+                # 3. LỌC NGƯỜI TRONG VÙNG MA THUẬT
+                for i, box in enumerate(boxes):
+                    bx1, by1, bx2, by2 = box[:4]
+                    center_x = (bx1 + bx2) / 2
+                    center_y = (by1 + by2) / 2
                     
-                    # Chỉ xét người đủ lớn (tránh nhiễu)
-                    if area > MIN_PERSON_AREA and area > max_area:
-                        max_area = area
-                        best_person_idx = i
-        
-        # 4. XỬ LÝ NGƯỜI ĐƯỢC CHỌN TRONG VÙNG
-        if best_person_idx != -1:
-            # CÓ NGƯỜI TRONG VÙNG
-            features = extract_features_34(keypoints[best_person_idx], frame.shape).reshape(1, -1)
+                    if (ZONE_X1 < center_x < ZONE_X2) and (ZONE_Y1 < center_y < ZONE_Y2):
+                        area = (bx2 - bx1) * (by2 - by1)
+                        if area > MIN_PERSON_AREA and area > max_area:
+                            max_area = area
+                            best_person_idx = i
             
-            # AI Tầng 1 (Ngồi hay Đứng?)
-            presence = p_clf.predict(p_scaler.transform(features))[0]
-            
-            if presence == 1:  # Đang ngồi
-                # AI Tầng 2 (Tư thế)
-                scaled_feat = h_scaler.transform(features)
-                current_status = int(h_clf.predict(scaled_feat)[0])
-            else:
-                current_status = 2  # Đứng/Đi lại trong vùng
-                
+                # 4. XỬ LÝ NGƯỜI ĐƯỢC CHỌN TRONG VÙNG
+                if best_person_idx != -1:
+                    # Lấy keypoints của người được chọn (xy array)
+                    keypoints_data = results[0].keypoints.xy[best_person_idx].cpu().numpy()
+                    
+                    IMPORTANT_KEYPOINTS_INDICES = [0, 5, 6, 11, 12]
+                    # Nose(0), LShoulder(5), RShoulder(6), LHip(11), RHip(12)
+                    
+                    if len(keypoints_data) >= 13:
+                        features = []
+                        for idx in IMPORTANT_KEYPOINTS_INDICES:
+                            x, y = keypoints_data[idx]
+                            features.extend([x, y])
+                        
+                        # Chỉ xử lý nếu tất cả điểm nối đều được YOLO phát hiện (khác 0)
+                        if not any(f == 0 for f in features):
+                            features_arr = np.array(features).reshape(1, -1)
+                            # Chuẩn hóa & Dự đoán
+                            scaled_feat = h_scaler.transform(features_arr)
+                            # Model SVM trả về 0 (đúng) hoặc 1 (sai)
+                            current_status = int(h_clf.predict(scaled_feat)[0])
+                        else:
+                            current_status = 2 # Nếu bị khuất điểm nối thì coi như chưa bắt được tư thế (Vắng/đứng lên)
     except Exception as e:
         print(f"Lỗi AI Vùng Ma Thuật: {e}")
         current_status = 2
