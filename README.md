@@ -12,6 +12,46 @@ Hệ thống IoT tích hợp Trí tuệ nhân tạo (AI) giúp theo dõi và c�
 - **Hệ thống cảnh báo thông minh:** Tự động phát ra cảnh báo (Alert) nếu phát hiện người dùng ngồi sai tư thế liên tục quá 60 giây, giúp hạn chế các bệnh lý về cột sống.
 - **Lưu trữ & Thống kê:** Tự động chụp lại các khoảnh khắc ngồi sai tư thế làm bằng chứng hoặc để thu thập dữ liệu huấn luyện. Giao diện Web Dashboard trực quan theo dõi lịch sử và trạng thái.
 
+## 🏗 Sơ đồ Kiến trúc Hệ thống
+
+**1. Sơ đồ Kết nối Toàn hệ thống (System Flow)**
+Mô tả cách các luồng dữ liệu (hình ảnh, nhịp tim, cảnh báo) di chuyển giữa các thành phần:
+
+```mermaid
+graph TD
+    subgraph "Trạm thu thập (ESP32-S3)"
+        A["Camera ESP32"] -->|"Gửi Ảnh liên tục (POST)"| C("API /detect")
+        B["Cảm biến MAX30102"] -->|"Gửi Nhịp tim/SpO2 (POST)"| D("API /sensor_data")
+        K["Màn hình OLED & Còi báo"]
+    end
+
+    subgraph "Máy chủ AI Trung tâm (Python/Flask)"
+        C --> E["YOLOv11-pose Trích xuất Khung xương"]
+        E --> F["SVM Phân loại Tư thế"]
+        D --> G["Lưu Trữ Lịch Sử Sức Khỏe"]
+        F -->|"Xác định trạng thái"| H{"Ra quyết định Cảnh báo"}
+        G --> H
+    end
+
+    subgraph "Người dùng (Web Dashboard)"
+        I["Giao diện Trình duyệt"] -.->|"Lấy dữ liệu (GET)"| H
+    end
+
+    H -->|"Trả JSON Trạng thái"| K
+```
+
+**2. Sơ đồ Khối Phần cứng (Hardware Block Diagram)**
+Mô tả cách các linh kiện kết nối với vi điều khiển trung tâm:
+
+```mermaid
+graph LR
+    A["Nguồn 5V/Pin"] -->|"Cấp nguồn"| B("ESP32-S3 WROOM")
+    C["Module Camera 2MP"] -->|"Tích hợp sẵn"| B
+    D["Cảm biến MAX30102"] <-->|"Giao tiếp I2C"| B
+    E["Màn hình OLED SH1106"] <-->|"Giao tiếp I2C"| B
+    B -->|"Tín hiệu PWM"| F["Còi chíp Buzzer"]
+```
+
 ## 📂 Cấu trúc Repository
 
 Dự án được tổ chức thành các phân hệ rõ ràng:
