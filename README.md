@@ -44,7 +44,7 @@ graph TD
 Tổng quan các khối và chuẩn giao tiếp trong hệ thống:
 
 ```mermaid
-graph LR
+flowchart LR
     Left["KHỐI THIẾT BỊ CHẤP HÀNH<br>(Còi báo, Led, màn LCD)"]
     Center["KHỐI XỬ LÝ<br>(ESP32-CAM)"]
     Right["KHỐI CẢM BIẾN<br>(Sensor, Camera)"]
@@ -52,7 +52,7 @@ graph LR
 
     Left <-- Center
     Center <--> Right
-    Center <-->|"wifi"| Bottom
+    Center <-->|wifi| Bottom
 ```
 
 ## 📂 Cấu trúc Repository
