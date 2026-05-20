@@ -21,14 +21,14 @@ Web Dashboard hoạt động độc lập (hoặc được serve tĩnh qua Flask
 
 ```mermaid
 graph LR
-    A[Web Dashboard (Trình duyệt)] -->|GET /api/get_status| B[AI Server]
-    A -->|GET /api/history| B
-    A -->|POST /api/set_config| B
-    A -->|GET /api/performance| B
+    A["Web Dashboard (Trình duyệt)"] -->|"GET /api/get_status"| B["AI Server"]
+    A -->|"GET /api/history"| B
+    A -->|"POST /api/set_config"| B
+    A -->|"GET /api/performance"| B
     
-    B -.->|JSON Response| A
+    B -.->|"JSON Response"| A
     
-    B --> C[(Biến cục bộ & Tệp JSON Lịch sử)]
+    B --> C[("Biến cục bộ & Tệp JSON Lịch sử")]
 ```
 
 ## 🛠 Công nghệ sử dụng
