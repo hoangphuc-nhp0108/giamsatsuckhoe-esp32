@@ -1,0 +1,2595 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Office Health Monitor - Hệ thống Phân quyền</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #111827;
+            --light: #f3f4f6;
+            --gray: #6b7280;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .login-card {
+            background: rgba(30, 41, 59, 0.9);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .login-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-title h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .login-title p {
+            color: #94a3b8;
+        }
+        
+        .role-selection {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .role-btn {
+            flex: 1;
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .role-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #94a3b8;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0284c7;
+        }
+        
+        /* Dashboard */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #334155;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .logo-text h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .logo-text p {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-role {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .role-manager {
+            background: rgba(14, 165, 233, 0.2);
+            color: var(--primary);
+            border: 1px solid rgba(14, 165, 233, 0.4);
+        }
+        
+        .role-employee {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+        
+        .logout-btn {
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .status-connected {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--success);
+        }
+        
+        .status-disconnected {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--danger);
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .dot-connected { background: var(--success); }
+        .dot-disconnected { background: var(--danger); }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .metric-card {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .metric-title {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        
+        .metric-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .heart-icon { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .oxygen-icon { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .posture-icon { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .time-icon { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .metric-unit {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        
+        .posture-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .posture-good { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.4); }
+        .posture-bad { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.4); }
+        .posture-na { background: rgba(107, 114, 128, 0.2); color: var(--gray); border: 1px solid rgba(107, 114, 128, 0.4); }
+        .posture-long-incorrect { background: rgba(139, 0, 0, 0.2); color: #ff6b6b; border: 1px solid rgba(139, 0, 0, 0.4); }
+        .posture-long-sitting { background: rgba(128, 0, 128, 0.2); color: #d8b4fe; border: 1px solid rgba(128, 0, 128, 0.4); }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-container {
+            height: 300px;
+        }
+        
+        .posture-image-container {
+            display: flex;
+            flex-direction: column;
+            height: 300px;
+        }
+        
+        .posture-image {
+            width: 100%;
+            height: 200px;
+            background: #0f172a;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 2px solid #334155;
+            transition: all 0.3s ease;
+        }
+        
+        .posture-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        
+        .posture-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .time-display {
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #334155;
+        }
+        
+        .time-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .time-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .time-label {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        
+        .time-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fbbf24;
+        }
+        
+        .alert-item {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-warning { background: rgba(245, 158, 11, 0.1); border-left: 4px solid var(--warning); }
+        .alert-danger { background: rgba(239, 68, 68, 0.1); border-left: 4px solid var(--danger); }
+        .alert-info { background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        
+        .control-input {
+            width: 100%;
+            padding: 10px 15px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid #334155;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .btn-ghost {
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid #334155;
+        }
+        
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #d97706;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .history-section {
+            margin-bottom: 30px;
+        }
+        
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .history-table th,
+        .history-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .history-table th {
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .history-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .posture-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .posture-good-indicator { background: var(--success); }
+        .posture-bad-indicator { background: var(--danger); }
+        .posture-na-indicator { background: var(--gray); }
+        .posture-long-incorrect-indicator { background: #ff6b6b; }
+        .posture-long-sitting-indicator { background: #d8b4fe; }
+        
+        .export-btn {
+            margin-top: 15px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #64748b;
+            font-size: 14px;
+            border-top: 1px solid #334155;
+            margin-top: 30px;
+        }
+        
+        .target-info {
+            background: rgba(14, 165, 233, 0.1);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .target-info h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .api-config {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .api-config h3 {
+            color: var(--warning);
+            margin-bottom: 10px;
+        }
+        
+        .sample-images-section {
+            margin-bottom: 30px;
+        }
+        
+        .sample-images-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .sample-image-container {
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #334155;
+        }
+        
+        .sample-image-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .sample-image-feed {
+            width: 100%;
+            height: 180px;
+            background: #0f172a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .sample-image-feed img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 6px;
+        }
+        
+        .config-section {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .config-section h3 {
+            color: var(--success);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .zone-info {
+            background: rgba(255, 255, 0, 0.1);
+            border: 1px solid rgba(255, 255, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .zone-info h3 {
+            color: #fbbf24;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Chatbot Styles */
+        .chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            overflow: hidden;
+            transform: translateY(calc(100% - 60px));
+            transition: transform 0.3s ease;
+        }
+        
+        .chatbot-container.open {
+            transform: translateY(0);
+        }
+        
+        .chatbot-header {
+            padding: 15px;
+            background: rgba(14, 165, 233, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chatbot-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .chatbot-title h3 {
+            font-size: 16px;
+        }
+        
+        .chatbot-close {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .chatbot-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .message {
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .message-bot {
+            background: rgba(14, 165, 233, 0.2);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-user {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .chatbot-input {
+            padding: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chatbot-input input {
+            flex: 1;
+            padding: 10px 15px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid #334155;
+            border-radius: 20px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .chatbot-input button {
+            background: var(--primary);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .chatbot-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            border: none;
+        }
+        
+        /* Manager-only sections */
+        .manager-only {
+            display: none;
+        }
+        
+        .user-manager .manager-only {
+            display: block;
+        }
+        
+        /* Employee-only sections */
+        .employee-only {
+            display: none;
+        }
+        
+        .user-employee .employee-only {
+            display: block;
+        }
+        
+        /* Animation for posture image */
+        .posture-image-pulse {
+            animation: pulse-border 2s infinite;
+        }
+        
+        @keyframes pulse-border {
+            0% { border-color: #334155; }
+            50% { border-color: #fbbf24; }
+            100% { border-color: #334155; }
+        }
+        
+        .posture-image-good {
+            border-color: #10b981 !important;
+        }
+        
+        .posture-image-bad {
+            border-color: #ef4444 !important;
+            animation: pulse-border-alert 1s infinite;
+        }
+        
+        @keyframes pulse-border-alert {
+            0% { border-color: #ef4444; }
+            50% { border-color: #fca5a5; }
+            100% { border-color: #ef4444; }
+        }
+        
+        .posture-image-warning {
+            border-color: #f59e0b !important;
+            animation: pulse-border-warning 1.5s infinite;
+        }
+        
+        @keyframes pulse-border-warning {
+            0% { border-color: #f59e0b; }
+            50% { border-color: #fcd34d; }
+            100% { border-color: #f59e0b; }
+        }
+        
+        /* Tăng kích thước ảnh minh họa tư thế */
+        .posture-image-large {
+            height: 300px !important;
+            margin-bottom: 20px;
+        }
+        
+        .posture-image-large img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .sample-images-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chatbot-container {
+                width: 300px;
+                height: 450px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .sample-images-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chatbot-container {
+                width: calc(100% - 40px);
+                right: 20px;
+                left: 20px;
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-container">
+        <div class="login-card">
+            <div class="login-title">
+                <h1>Hệ thống Giám sát Sức khỏe</h1>
+                <p>Đăng nhập để tiếp tục</p>
+            </div>
+            
+            <div class="role-selection">
+                <div class="role-btn active" data-role="employee">Nhân viên</div>
+                <div class="role-btn" data-role="manager">Quản lý</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Tên đăng nhập</label>
+                <input type="text" class="form-input" id="username" placeholder="Nhập tên đăng nhập">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Mật khẩu</label>
+                <input type="password" class="form-input" id="password" placeholder="Nhập mật khẩu">
+            </div>
+            
+            <button class="btn btn-primary" id="login-btn">Đăng nhập</button>
+            
+            <div style="margin-top: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
+                <p>💡 Demo: Sử dụng bất kỳ thông tin đăng nhập nào</p>
+                <p>Vai trò sẽ được xác định theo lựa chọn bên trên</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dashboard (Hidden by default) -->
+    <div id="dashboard" class="container" style="display: none;">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">🩺</div>
+                <div class="logo-text">
+                    <h1>Hệ thống theo dõi tư thế & sức khỏe</h1>
+                    <p>Giám sát tư thế · Nhịp tim · SpO₂ · Monitor Zone</p>
+                </div>
+            </div>
+            
+            <div class="user-info">
+                <div class="user-role" id="user-role-display">Nhân viên</div>
+                <div class="connection-status status-disconnected" id="connection-status">
+                    <div class="status-dot dot-disconnected" id="status-dot"></div>
+                    <span id="status-text">Đang kết nối đến server...</span>
+                </div>
+                <button class="logout-btn" id="logout-btn">Đăng xuất</button>
+            </div>
+        </header>
+
+        <!-- CẤU HÌNH API -->
+        <div class="api-config">
+            <h3>⚙️ Cấu hình kết nối</h3>
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; align-items: end;">
+                <div>
+                    <label class="control-label">URL Server API</label>
+                    <input type="text" class="control-input" id="api-url" 
+                           placeholder="http://your-server.com:8000" value="https://hphuc.esp32s3cam-pose-daktn5.id.vn">
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">
+                        💡 Nhập URL server API của bạn (ví dụ: http://your-domain.com:8000)
+                    </div>
+                </div>
+                <div>
+                    <button class="btn btn-primary" id="test-connection">🔗 Test Kết nối</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="dashboard-grid">
+            <div class="card metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">Nhịp tim</div>
+                    <div class="metric-icon heart-icon">❤️</div>
+                </div>
+                <div class="metric-value" id="hr-value">--</div>
+                <div class="metric-unit">bpm</div>
+            </div>
+            
+            <div class="card metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">SpO₂</div>
+                    <div class="metric-icon oxygen-icon">🫁</div>
+                </div>
+                <div class="metric-value" id="spo2-value">--</div>
+                <div class="metric-unit">%</div>
+            </div>
+            
+            <div class="card metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">Tư thế</div>
+                    <div class="metric-icon posture-icon">📷</div>
+                </div>
+                <div class="posture-badge posture-na" id="posture-value">N/A</div>
+            </div>
+            
+            <div class="card metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">Trạng thái</div>
+                    <div class="metric-icon time-icon">🎯</div>
+                </div>
+                <div class="metric-value" id="tracking-status">--</div>
+                <div class="metric-unit" id="zone-status">Vắng mặt</div>
+            </div>
+        </div>
+        
+        <div class="content-grid">
+            <div class="card">
+                <h2 class="video-title">Xu hướng HR & SpO₂</h2>
+                <div class="chart-container">
+                    <canvas id="trend-chart"></canvas>
+                </div>
+            </div>
+            
+            <!-- ẢNH MINH HỌA TƯ THẾ - KÍCH THƯỚC LỚN -->
+            <div class="card">
+                <h2 class="video-title">🎭 Hình ảnh minh họa tư thế</h2>
+                <div class="posture-image posture-image-large" id="posture-image-container">
+                    <div style="color: #94a3b8; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">🔄</div>
+                        <div style="font-size: 14px;">Đang tải hình ảnh...</div>
+                    </div>
+                    <img id="posture-image" style="display: none;" alt="Hình ảnh tư thế">
+                </div>
+            </div>
+        </div>
+
+        <!-- THÔNG TIN THỜI GIAN TỰ TÍNH TRÊN WEB -->
+        <div class="card">
+            <h2 class="video-title">⏱️ Thời gian hoạt động</h2>
+            <div class="time-display">
+                <div class="time-item">
+                    <span class="time-label">🪑 Thời gian ngồi:</span>
+                    <span class="time-value" id="sitting-time-display">00:00:00</span>
+                </div>
+                <div class="time-item">
+                    <span class="time-label">🚶 Thời gian di chuyển:</span>
+                    <span class="time-value" id="moving-time-display">00:00:00</span>
+                </div>
+                <div class="time-item">
+                    <span class="time-label">⚠️ Thời gian sai tư thế:</span>
+                    <span class="time-value" id="bad-posture-time-display">00:00</span>
+                </div>
+                <div class="time-item">
+                    <span class="time-label">⏰ Thời gian ngồi liên tục:</span>
+                    <span class="time-value" id="continuous-sitting-time-display">00:00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- THÔNG TIN VÙNG MA THUẬT - CHỈ DÀNH CHO QUẢN LÝ -->
+        <div class="zone-info manager-only">
+            <h3>🎪 Monitor Zone</h3>
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; align-items: center;">
+                <div>
+                    <p style="margin-bottom: 10px; color: #fbbf24;">
+                        <strong>💡 Hướng dẫn:</strong> Ngồi trong vùng vàng trên camera để được giám sát tự động. 
+                        Hệ thống sẽ tự nhận diện người ngồi trong vùng mà không cần khóa ID.
+                    </p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
+                        <div>
+                            <strong>🎯 Trạng thái:</strong> <span id="zone-detection-status">Chưa kết nối</span>
+                        </div>
+                        <div>
+                            <strong>👤 Người trong vùng:</strong> <span id="zone-person-status">Không có</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn btn-warning" id="reset-zone" disabled>🔄 Reset Vùng Giám Sát</button>
+                    <div style="font-size: 12px; color: #fbbf24; margin-top: 5px; text-align: center;">
+                        Reset để làm mới hệ thống nhận diện
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CẤU HÌNH THỜI GIAN CẢNH BÁO - CHỈ DÀNH CHO QUẢN LÝ -->
+        <div class="config-section manager-only">
+            <h3>⏰ Cấu hình thời gian cảnh báo</h3>
+            <div class="config-grid">
+                <div class="control-group">
+                    <label class="control-label">Cảnh báo sai tư thế (giây)</label>
+                    <input type="number" class="control-input" id="incorrect-posture-threshold" value="30" min="5">
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">
+                        Thời gian sai tư thế trước khi cảnh báo
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Cảnh báo sai lâu (giây)</label>
+                    <input type="number" class="control-input" id="long-incorrect-threshold" value="120" min="30">
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">
+                        Thời gian sai tư thế trước khi cảnh báo nguy hiểm
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Cảnh báo ngồi lâu (giây)</label>
+                    <input type="number" class="control-input" id="long-sitting-threshold" value="3600" min="300">
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">
+                        Thời gian ngồi liên tục trước khi cảnh báo
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <button class="btn btn-primary" id="save-config">💾 Lưu cấu hình</button>
+                <button class="btn btn-ghost" id="load-config">🔄 Tải cấu hình hiện tại</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="target-info">
+                <h3>📊 Thông tin theo dõi</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <strong>Trạng thái giám sát:</strong> <span id="current-tracking-status">Đang tìm người ngồi</span>
+                    </div>
+                    <div>
+                        <strong>Phát hiện trong vùng:</strong> <span id="current-zone-status">Không có</span>
+                    </div>
+                    <div>
+                        <strong>Trạng thái kết nối:</strong> <span id="connection-health">Chưa kết nối</span>
+                    </div>
+                    <div>
+                        <strong>FPS xử lý:</strong> <span id="processing-fps">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CẤU HÌNH MONITOR ZONE - CHỈ DÀNH CHO QUẢN LÝ -->
+        <div class="config-section manager-only">
+            <h3>🎯 Cấu hình Monitor Zone</h3>
+            <div class="config-grid">
+                <div class="control-group">
+                    <label class="control-label">Vùng trái (X1) (%)</label>
+                    <input type="number" class="control-input" id="zone-x1-ratio" value="20" min="0" max="100" step="1">
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">
+                        Vị trí bắt đầu theo chiều ngang
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Vùng trên (Y1) (%)</label>
+                    <input type="number" class="control-input" id="zone-y1-ratio" value="10" min="0" max="100" step="1">
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">
+                        Vị trí bắt đầu theo chiều dọc
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Vùng phải (X2) (%)</label>
+                    <input type="number" class="control-input" id="zone-x2-ratio" value="80" min="0" max="100" step="1">
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">
+                        Vị trí kết thúc theo chiều ngang
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Vùng dưới (Y2) (%)</label>
+                    <input type="number" class="control-input" id="zone-y2-ratio" value="90" min="0" max="100" step="1">
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">
+                        Vị trí kết thúc theo chiều dọc
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <button class="btn btn-primary" id="save-zone-config">💾 Lưu cấu hình vùng</button>
+                <button class="btn btn-ghost" id="load-zone-config">🔄 Tải cấu hình vùng hiện tại</button>
+                <button class="btn btn-warning" id="reset-zone-config">🔄 Reset về mặc định</button>
+            </div>
+            <div style="margin-top: 10px; padding: 10px; background: rgba(255, 255, 0, 0.1); border-radius: 5px; border: 1px solid rgba(255, 255, 0, 0.3);">
+                <div style="color: #fbbf24; font-size: 12px;">
+                    <strong>💡 Lưu ý:</strong> Các giá trị là phần trăm (0-100%) của khung hình. 
+                    Vùng giám sát sẽ là hình chữ nhật từ (X1%, Y1%) đến (X2%, Y2%)
+                </div>
+            </div>
+        </div>
+        
+        <!-- ẢNH MẪU NGỒI ĐÚNG VÀ SAI - CHỈ DÀNH CHO QUẢN LÝ -->
+        <div class="sample-images-section manager-only">
+            <div class="card">
+                <h2 class="video-title">🖼️ Ảnh mẫu tư thế</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div>
+                        <button class="btn btn-ghost" id="refresh-samples">🔄 Làm mới ảnh mẫu</button>
+                    </div>
+                    <div style="color: #94a3b8; font-size: 14px;">
+                        <span>Ảnh được lưu tự động mỗi 10 phút</span>
+                    </div>
+                </div>
+                <div class="sample-images-grid">
+                    <div class="sample-image-container">
+                        <div class="sample-image-title">
+                            <h4 style="color: #10b981;">✅ Tư thế đúng</h4>
+                            <span style="font-size: 12px; color: #94a3b8;" id="correct-image-time">--</span>
+                        </div>
+                        <div class="sample-image-feed" id="correct-posture-container">
+                            <div style="color: #94a3b8; text-align: center;">
+                                <div>📷</div>
+                                <div style="font-size: 14px; margin-top: 10px;">Chưa có ảnh mẫu</div>
+                            </div>
+                            <img id="correct-posture-image" style="display: none;" alt="Tư thế đúng">
+                        </div>
+                    </div>
+                    <div class="sample-image-container">
+                        <div class="sample-image-title">
+                            <h4 style="color: #ef4444;">❌ Tư thế sai</h4>
+                            <span style="font-size: 12px; color: #94a3b8;" id="incorrect-image-time">--</span>
+                        </div>
+                        <div class="sample-image-feed" id="incorrect-posture-container">
+                            <div style="color: #94a3b8; text-align: center;">
+                                <div>📷</div>
+                                <div style="font-size: 14px; margin-top: 10px;">Chưa có ảnh mẫu</div>
+                            </div>
+                            <img id="incorrect-posture-image" style="display: none;" alt="Tư thế sai">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PHẦN CÀI ĐẶT CẢNH BÁO VÀ QUẢN LÝ DỮ LIỆU - CHỈ DÀNH CHO QUẢN LÝ -->
+        <div class="controls manager-only">
+            <div class="card">
+                <h2 class="video-title">Cài đặt cảnh báo</h2>
+                <div class="control-group">
+                    <label class="control-label">HR min (bpm)</label>
+                    <input type="number" class="control-input" id="hr-min" value="50">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">HR max (bpm)</label>
+                    <input type="number" class="control-input" id="hr-max" value="110">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">SpO₂ min (%)</label>
+                    <input type="number" class="control-input" id="spo2-min" value="94">
+                </div>
+                <div class="control-group">
+                    <button class="btn btn-primary" id="save-settings">💾 Lưu cài đặt</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="video-title">Quản lý dữ liệu</h2>
+                <div class="control-group">
+                    <label class="control-label">Làm mới tự động</label>
+                    
+                    <select class="control-input" id="refresh-interval">
+                        <option value="1500" selected>1.5 giây</option>
+                        <option value="2000">2 giây</option>
+                        <option value="5000">5 giây</option>
+                        <option value="10000">10 giây</option>
+                    </select>
+                    
+                </div>
+                <div class="control-group">
+                    <button class="btn btn-primary" id="export-history" disabled>📥 Export CSV</button>
+                    <button class="btn btn-ghost" id="refresh-data" disabled>🔄 Làm mới ngay</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHẦN LỊCH SỬ - CHỈ DÀNH CHO QUẢN LÝ -->
+        <div class="history-section manager-only">
+            <div class="card">
+                <h2 class="video-title">📊 Lịch sử trạng thái</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div>
+                        <button class="btn btn-ghost" id="refresh-history" disabled>🔄 Làm mới lịch sử</button>
+                    </div>
+                    <div style="color: #94a3b8; font-size: 14px;">
+                        <span id="last-update">Chưa kết nối</span>
+                    </div>
+                </div>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Tư thế</th>
+                                <th>BPM</th>
+                                <th>SpO₂</th>
+                                <th>Trạng thái</th>
+                                <th>Cảnh báo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #94a3b8;">
+                                    Kết nối thành công để xem dữ liệu lịch sử
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2024 Hệ thống theo dõi tư thế & sức khỏe - Hệ thống Phân quyền</p>
+            <p style="font-size: 12px; margin-top: 5px;">Phương pháp Monitor Zone - Chỉ giám sát người trong vùng vàng</p>
+        </footer>
+    </div>
+
+    <!-- Chatbot -->
+    <button class="chatbot-toggle" id="chatbot-toggle">💬</button>
+    
+    <div class="chatbot-container" id="chatbot-container">
+        <div class="chatbot-header">
+            <div class="chatbot-title">
+                <h3>Trợ lý Sức khỏe</h3>
+            </div>
+            <button class="chatbot-close" id="chatbot-close">✕</button>
+        </div>
+        <div class="chatbot-messages" id="chatbot-messages">
+            <div class="message message-bot">
+                Xin chào! Tôi là trợ lý sức khỏe. Tôi có thể giúp gì cho bạn?
+            </div>
+        </div>
+        <div class="chatbot-input">
+            <input type="text" id="chatbot-input" placeholder="Nhập câu hỏi của bạn...">
+            <button id="chatbot-send">➤</button>
+        </div>
+    </div>
+
+    <script>
+        // Biến toàn cục
+        let hrData = [];
+        let spo2Data = [];
+        let chart;
+        let apiBaseUrl = '';
+        let historyData = [];
+        let refreshInterval = 2000;
+        let isConnected = false;
+        let autoRefreshInterval;
+        let retryCount = 0;
+        let reconnectAttempts = 0;
+        const MAX_RECONNECT_ATTEMPTS = 5;
+
+        // Biến tự tính thời gian trên web
+        let webSittingTime = 0; // Thời gian ngồi (giây)
+        let webMovingTime = 0; // Thời gian di chuyển (giây)
+        let webBadPostureTime = 0; // Thời gian sai tư thế (giây)
+        let webContinuousSittingTime = 0; // Thời gian ngồi liên tục (giây)
+        let lastPostureStatus = 2; // Trạng thái tư thế trước đó
+        let lastUpdateTime = Date.now();
+        let timeUpdateInterval;
+
+        // Biến theo dõi lịch sử thay đổi
+        let lastRecordedData = null;
+        let changeDetectionTimeout = null;
+
+        // Thông tin người dùng
+        let currentUser = null;
+        let currentRole = 'employee'; // Mặc định là nhân viên
+
+        // Khởi tạo biểu đồ
+        function initChart() {
+            const ctx = document.getElementById('trend-chart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Nhịp tim (bpm)',
+                            data: hrData,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'SpO₂ (%)',
+                            data: spo2Data,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y1',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Nhịp tim (bpm)',
+                                color: '#94a3b8'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            },
+                            min: 40,
+                            max: 120
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'SpO₂ (%)',
+                                color: '#94a3b8'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            },
+                            min: 80,
+                            max: 100
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                maxTicksLimit: 8
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#94a3b8',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#f1f5f9',
+                            borderColor: '#334155',
+                            borderWidth: 1
+                        }
+                    }
+                }
+            });
+        }
+
+        // Hàm tính thời gian tự động trên web
+        function updateWebTimeCalculations() {
+            const now = Date.now();
+            const elapsedSeconds = (now - lastUpdateTime) / 1000;
+            lastUpdateTime = now;
+
+            // Cập nhật thời gian dựa trên trạng thái hiện tại
+            if (lastPostureStatus === 0 || lastPostureStatus === 1 || lastPostureStatus === 3 || lastPostureStatus === 4) {
+                // Đang ngồi
+                webSittingTime += elapsedSeconds;
+                webContinuousSittingTime += elapsedSeconds;
+                
+                if (lastPostureStatus === 1 || lastPostureStatus === 3) {
+                    // Đang sai tư thế
+                    webBadPostureTime += elapsedSeconds;
+                } else {
+                    // Đang đúng tư thế - reset thời gian sai tư thế
+                    webBadPostureTime = 0;
+                }
+            } else {
+                // Đang di chuyển hoặc vắng mặt
+                webMovingTime += elapsedSeconds;
+                webContinuousSittingTime = 0;
+                webBadPostureTime = 0;
+            }
+
+            // Cập nhật hiển thị
+            updateTimeDisplays();
+        }
+
+        // Cập nhật hiển thị thời gian
+        function updateTimeDisplays() {
+            document.getElementById('sitting-time-display').textContent = formatTime(webSittingTime);
+            document.getElementById('moving-time-display').textContent = formatTime(webMovingTime);
+            document.getElementById('bad-posture-time-display').textContent = formatShortTime(webBadPostureTime);
+            document.getElementById('continuous-sitting-time-display').textContent = formatShortTime(webContinuousSittingTime);
+        }
+
+        // Format thời gian
+        function formatTime(seconds) {
+            if (!seconds || seconds < 0) return '00:00:00';
+            
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            
+            return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Format thời gian ngắn (cho thời gian sai tư thế)
+        function formatShortTime(seconds) {
+            if (!seconds || seconds < 0) return '00:00';
+            
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Hàm kiểm tra dữ liệu có thay đổi đáng kể không
+        function hasSignificantChanges(newData) {
+            if (!lastRecordedData) return true;
+            
+            // Kiểm tra thay đổi về tư thế
+            if (newData.posture_status !== lastRecordedData.posture_status) return true;
+            
+            // Kiểm tra thay đổi về tracking
+            if (newData.tracking_active !== lastRecordedData.tracking_active) return true;
+            
+            // Kiểm tra thay đổi lớn về nhịp tim (> 5 bpm)
+            if (Math.abs(newData.bpm - lastRecordedData.bpm) > 5) return true;
+            
+            // Kiểm tra thay đổi lớn về SpO₂ (> 2%)
+            if (Math.abs(newData.spo2 - lastRecordedData.spo2) > 2) return true;
+            
+            // Kiểm tra thay đổi về cảnh báo
+            const newAlert = newData.alert_active || newData.long_incorrect_alert || newData.long_sitting_alert;
+            const lastAlert = lastRecordedData.alert_active || lastRecordedData.long_incorrect_alert || lastRecordedData.long_sitting_alert;
+            if (newAlert !== lastAlert) return true;
+            
+            return false;
+        }
+
+        // Hàm fetch với timeout
+        async function fetchWithTimeout(resource, options = {}) {
+            const { timeout = 8000 } = options;
+            
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            
+            try {
+                const response = await fetch(resource, {
+                    ...options,
+                    signal: controller.signal  
+                });
+                clearTimeout(id);
+                return response;
+            } catch (error) {
+                clearTimeout(id);
+                throw error;
+            }
+        }
+
+        // Health check
+        async function healthCheck() {
+            if (!apiBaseUrl) return false;
+            
+            try {
+                const response = await fetchWithTimeout(`${apiBaseUrl}/api/health`, {
+                    timeout: 3000
+                });
+                return response.ok;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        // Auto-reconnect
+        async function attemptReconnect() {
+            if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+                console.log('Đã vượt quá số lần kết nối lại tối đa');
+                return;
+            }
+            
+            reconnectAttempts++;
+            console.log(`Thử kết nối lại lần ${reconnectAttempts}...`);
+            
+            const isHealthy = await healthCheck();
+            if (isHealthy) {
+                console.log('✅ Kết nối lại thành công!');
+                updateConnectionStatus(true, '✅ Đã khôi phục kết nối');
+                reconnectAttempts = 0;
+                startAutoRefresh();
+            } else {
+                const nextDelay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+                console.log(`Thử kết nối lại sau ${nextDelay}ms...`);
+                setTimeout(attemptReconnect, nextDelay);
+            }
+        }
+
+        // Cập nhật trạng thái kết nối
+        function updateConnectionStatus(connected, message = '') {
+            isConnected = connected;
+            const statusElement = document.getElementById('connection-status');
+            const dotElement = document.getElementById('status-dot');
+            const textElement = document.getElementById('status-text');
+            const healthElement = document.getElementById('connection-health');
+            
+            if (connected) {
+                statusElement.className = 'connection-status status-connected';
+                dotElement.className = 'status-dot dot-connected';
+                textElement.textContent = message || '✅ Đã kết nối đến server';
+                healthElement.textContent = '✅ Đã kết nối';
+                healthElement.style.color = '#10b981';
+                
+                // Kích hoạt các nút
+                document.querySelectorAll('button:disabled').forEach(btn => {
+                    if (btn.id !== 'test-connection') {
+                        btn.disabled = false;
+                    }
+                });
+
+                // Bắt đầu tính thời gian
+                if (!timeUpdateInterval) {
+                    timeUpdateInterval = setInterval(updateWebTimeCalculations, 1000);
+                }
+            } else {
+                statusElement.className = 'connection-status status-disconnected';
+                dotElement.className = 'status-dot dot-disconnected';
+                textElement.textContent = message || '❌ Mất kết nối đến server';
+                healthElement.textContent = '❌ Mất kết nối';
+                healthElement.style.color = '#ef4444';
+                
+                // Xử lý khi mất kết nối
+                handleConnectionLost();
+                
+                // Vô hiệu hóa các nút
+                const buttonsToDisable = [
+                    'reset-zone', 'export-history', 'refresh-history', 'refresh-data',
+                    'refresh-samples', 'save-zone-config', 'load-zone-config', 'reset-zone-config'
+                ];
+                
+                buttonsToDisable.forEach(btnId => {
+                    const btn = document.getElementById(btnId);
+                    if (btn) btn.disabled = true;
+                });
+
+                // Dừng tính thời gian
+                if (timeUpdateInterval) {
+                    clearInterval(timeUpdateInterval);
+                    timeUpdateInterval = null;
+                }
+            }
+        }
+
+        // Test kết nối đến server
+        async function testConnection() {
+            const apiUrl = document.getElementById('api-url').value.trim();
+            if (!apiUrl) {
+                alert('⚠️ Vui lòng nhập URL server API');
+                return;
+            }
+            
+            try {
+                updateConnectionStatus(false, '🔄 Đang kiểm tra kết nối...');
+                
+                const response = await fetchWithTimeout(`${apiUrl}/api/health`, {
+                    timeout: 5000
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const data = await response.json();
+                apiBaseUrl = apiUrl;
+                localStorage.setItem('apiBaseUrl', apiBaseUrl);
+                
+                updateConnectionStatus(true, '✅ Kết nối thành công!');
+                reconnectAttempts = 0;
+                startAutoRefresh();
+                
+            } catch (error) {
+                console.error('Lỗi kết nối:', error);
+                let errorMsg = `❌ Không thể kết nối: ${error.message}`;
+                
+                if (error.name === 'AbortError') {
+                    errorMsg = '⏰ Timeout - Server không phản hồi';
+                }
+                
+                updateConnectionStatus(false, errorMsg);
+                
+                // Tự động thử lại
+                setTimeout(() => attemptReconnect(), 3000);
+            }
+        }
+
+        function updatePostureImage(postureStatus) {
+            const imageContainer = document.getElementById('posture-image-container');
+            const imageElement = document.getElementById('posture-image');
+            const placeholder = imageContainer.querySelector('div');
+            
+            // Xóa tất cả classes cũ
+            imageContainer.className = 'posture-image posture-image-large';
+            
+            let imageUrl = '';
+            let statusClass = '';
+            let placeholderHtml = '';
+            
+            switch(postureStatus) {
+                case 0: // Đúng
+                    imageUrl = 'posture-correct.jpg';
+                    statusClass = 'posture-image-good';
+                    placeholderHtml = `
+                        <div style="font-size: 48px; margin-bottom: 10px;">✅</div>
+                        <div style="font-size: 14px;">Tư thế ĐÚNG</div>
+                    `;
+                    break;
+                case 1: // Sai
+                    imageUrl = 'posture-incorrect.jpg';
+                    statusClass = 'posture-image-bad';
+                    placeholderHtml = `
+                        <div style="font-size: 48px; margin-bottom: 10px;">❌</div>
+                        <div style="font-size: 14px;">Tư thế SAI</div>
+                    `;
+                    break;
+                case 3: // Sai lâu
+                    imageUrl = 'posture-incorrect.jpg';
+                    statusClass = 'posture-image-bad posture-image-pulse';
+                    placeholderHtml = `
+                        <div style="font-size: 48px; margin-bottom: 10px;">🚨</div>
+                        <div style="font-size: 14px;">SAI TƯ THẾ LÂU</div>
+                    `;
+                    break;
+                case 4: // Ngồi lâu
+                    imageUrl = 'posture-correct.jpg';
+                    statusClass = 'posture-image-warning';
+                    placeholderHtml = `
+                        <div style="font-size: 48px; margin-bottom: 10px;">🕒</div>
+                        <div style="font-size: 14px;">NGỒI QUÁ LÂU</div>
+                    `;
+                    break;
+                default: // Vắng mặt
+                    imageUrl = 'posture-empty.jpg';
+                    statusClass = '';
+                    placeholderHtml = `
+                        <div style="font-size: 48px; margin-bottom: 10px;">👤</div>
+                        <div style="font-size: 14px;">VẮNG MẶT</div>
+                    `;
+                    break;
+            }
+            
+            // Cập nhật hình ảnh
+            if (imageUrl && isConnected) {
+                // Chỉ hiển thị ảnh thật khi có kết nối
+                imageElement.src = imageUrl;
+                imageElement.onload = function() {
+                    imageElement.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    imageContainer.classList.add(statusClass);
+                };
+                imageElement.onerror = function() {
+                    // Nếu ảnh không tồn tại, hiển thị placeholder
+                    imageElement.style.display = 'none';
+                    placeholder.style.display = 'block';
+                    placeholder.innerHTML = placeholderHtml;
+                    imageContainer.classList.add(statusClass);
+                };
+            } else {
+                // Hiển thị placeholder khi mất kết nối hoặc không có ảnh
+                imageElement.style.display = 'none';
+                placeholder.style.display = 'block';
+                placeholder.innerHTML = placeholderHtml;
+                imageContainer.classList.add(statusClass);
+            }
+        }
+
+        // Xử lý khi mất kết nối
+        function handleConnectionLost() {
+            // Reset hình ảnh về trạng thái mất kết nối
+            const imageContainer = document.getElementById('posture-image-container');
+            const imageElement = document.getElementById('posture-image');
+            const placeholder = imageContainer.querySelector('div');
+            
+            imageContainer.className = 'posture-image posture-image-large';
+            imageElement.style.display = 'none';
+            placeholder.style.display = 'block';
+            placeholder.innerHTML = `
+                <div style="font-size: 48px; margin-bottom: 10px;">🔌</div>
+                <div style="font-size: 14px;">MẤT KẾT NỐI</div>
+                <div style="font-size: 12px; color: #ef4444; margin-top: 5px;">Đang thử kết nối lại...</div>
+            `;
+        }
+
+        // Cập nhật dữ liệu từ server
+        async function updateData() {
+            if (!isConnected || !apiBaseUrl) return;
+            
+            try {
+                const response = await fetchWithTimeout(`${apiBaseUrl}/api/get_status`, {
+                    timeout: 5000
+                });
+                
+                if (!response.ok) throw new Error('Không thể kết nối đến server');
+                
+                const data = await response.json();
+                
+                // Cập nhật thời gian cập nhật cuối
+                document.getElementById('last-update').textContent = 
+                    `Cập nhật: ${new Date().toLocaleTimeString('vi-VN')}`;
+                
+                // Cập nhật các chỉ số chính
+                updateMainMetrics(data);
+                
+                // Cập nhật hình ảnh tư thế
+                updatePostureImage(data.posture_status);
+                
+                // Cập nhật thông tin vùng ma thuật
+                updateZoneInfo(data);
+                
+                // Cập nhật biểu đồ
+                updateChart(data);
+                
+                // Thêm vào lịch sử chỉ khi có thay đổi đáng kể
+                if (hasSignificantChanges(data)) {
+                    addToHistory(data);
+                    lastRecordedData = {...data}; // Lưu trạng thái hiện tại
+                }
+                
+                // Cập nhật FPS xử lý
+                if (data.performance && data.performance.fps) {
+                    document.getElementById('processing-fps').textContent = `${data.performance.fps} FPS`;
+                }
+                
+                // Reset retry counter khi thành công
+                retryCount = 0;
+                
+            } catch (error) {
+                console.error('Lỗi khi cập nhật dữ liệu:', error);
+                
+                // Phân loại lỗi chi tiết hơn
+                let errorMessage = '❌ Mất kết nối đến server';
+                if (error.name === 'AbortError') {
+                    errorMessage = '⏰ Timeout - Server phản hồi chậm';
+                } else if (error.message.includes('Failed to fetch')) {
+                    errorMessage = '🌐 Lỗi kết nối mạng';
+                } else if (error.message.includes('HTTP 5')) {
+                    errorMessage = '🔧 Lỗi server nội bộ';
+                }
+                
+                updateConnectionStatus(false, errorMessage);
+                
+                // Tự động retry với exponential backoff
+                retryCount++;
+                const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+                console.log(`Thử kết nối lại sau ${retryDelay}ms...`);
+                
+                setTimeout(() => {
+                    if (!isConnected) {
+                        updateData();
+                    }
+                }, retryDelay);
+            }
+        }
+
+        // Cập nhật các chỉ số chính
+        function updateMainMetrics(data) {
+            document.getElementById('hr-value').textContent = data.bpm > 0 ? data.bpm : '--';
+            document.getElementById('spo2-value').textContent = data.spo2 > 0 ? data.spo2.toFixed(1) : '--';
+            
+            // Cập nhật trạng thái tư thế
+            const postureElement = document.getElementById('posture-value');
+            if (data.posture_status === 0) {
+                postureElement.textContent = '✅ ĐÚNG';
+                postureElement.className = 'posture-badge posture-good';
+            } else if (data.posture_status === 1) {
+                postureElement.textContent = '❌ SAI';
+                postureElement.className = 'posture-badge posture-bad';
+            } else if (data.posture_status === 3) {
+                postureElement.textContent = '🚨 SAI LÂU';
+                postureElement.className = 'posture-badge posture-long-incorrect';
+            } else if (data.posture_status === 4) {
+                postureElement.textContent = '🕒 NGỒI LÂU';
+                postureElement.className = 'posture-badge posture-long-sitting';
+            } else {
+                postureElement.textContent = '👤 VẮNG';
+                postureElement.className = 'posture-badge posture-na';
+            }
+            
+            // Cập nhật trạng thái tracking
+            const trackingStatusElement = document.getElementById('tracking-status');
+            const zoneStatusElement = document.getElementById('zone-status');
+            
+            if (data.tracking_active) {
+                trackingStatusElement.textContent = 'ĐANG GIÁM SÁT';
+                trackingStatusElement.style.color = '#10b981';
+                zoneStatusElement.textContent = 'Có người';
+                zoneStatusElement.style.color = '#10b981';
+            } else {
+                trackingStatusElement.textContent = 'VẮNG MẶT';
+                trackingStatusElement.style.color = '#f59e0b';
+                zoneStatusElement.textContent = 'Không có';
+                zoneStatusElement.style.color = '#f59e0b';
+            }
+
+            // Lưu trạng thái tư thế để tính thời gian
+            lastPostureStatus = data.posture_status;
+        }
+
+        // Cập nhật thông tin vùng
+        function updateZoneInfo(data) {
+            const zoneDetectionElement = document.getElementById('zone-detection-status');
+            const zonePersonElement = document.getElementById('zone-person-status');
+            const currentTrackingElement = document.getElementById('current-tracking-status');
+            const currentZoneElement = document.getElementById('current-zone-status');
+            
+            if (data.tracking_active) {
+                zoneDetectionElement.textContent = 'ĐANG GIÁM SÁT';
+                zoneDetectionElement.style.color = '#10b981';
+                zonePersonElement.textContent = 'Có người trong vùng';
+                zonePersonElement.style.color = '#10b981';
+                currentTrackingElement.textContent = '🎯 Đang giám sát';
+                currentTrackingElement.style.color = '#10b981';
+                currentZoneElement.textContent = '✅ Có người';
+                currentZoneElement.style.color = '#10b981';
+            } else {
+                zoneDetectionElement.textContent = 'CHỜ NGƯỜI NGỒI';
+                zoneDetectionElement.style.color = '#f59e0b';
+                zonePersonElement.textContent = 'Không có người trong vùng';
+                zonePersonElement.style.color = '#f59e0b';
+                currentTrackingElement.textContent = '🔍 Đang tìm người ngồi';
+                currentTrackingElement.style.color = '#f59e0b';
+                currentZoneElement.textContent = '❌ Không có';
+                currentZoneElement.style.color = '#f59e0b';
+            }
+            
+            // Hiển thị thông tin vùng hiện tại
+            if (data.zone_config) {
+                const zone = data.zone_config;
+                const zoneInfoElement = document.querySelector('.zone-info');
+                if (zoneInfoElement) {
+                    const infoText = `Vùng hiện tại: ${Math.round(zone.zone_x1_ratio * 100)}%-${Math.round(zone.zone_x2_ratio * 100)}% (ngang), ${Math.round(zone.zone_y1_ratio * 100)}%-${Math.round(zone.zone_y2_ratio * 100)}% (dọc)`;
+                    let infoDiv = zoneInfoElement.querySelector('.zone-current-info');
+                    if (!infoDiv) {
+                        infoDiv = document.createElement('div');
+                        infoDiv.className = 'zone-current-info';
+                        infoDiv.style.marginTop = '10px';
+                        infoDiv.style.fontSize = '12px';
+                        infoDiv.style.color = '#fbbf24';
+                        zoneInfoElement.appendChild(infoDiv);
+                    }
+                    infoDiv.textContent = infoText;
+                }
+            }
+        }
+
+        // Lưu cấu hình vùng
+        async function saveZoneConfig() {
+            if (!isConnected || !apiBaseUrl) return;
+            
+            try {
+                const zoneConfigData = {
+                    zone_x1_ratio: parseInt(document.getElementById('zone-x1-ratio').value) / 100,
+                    zone_y1_ratio: parseInt(document.getElementById('zone-y1-ratio').value) / 100,
+                    zone_x2_ratio: parseInt(document.getElementById('zone-x2-ratio').value) / 100,
+                    zone_y2_ratio: parseInt(document.getElementById('zone-y2-ratio').value) / 100
+                };
+                
+                // Validate
+                if (zoneConfigData.zone_x1_ratio >= zoneConfigData.zone_x2_ratio) {
+                    alert('❌ Lỗi: Vùng phải (X2) phải lớn hơn vùng trái (X1)');
+                    return;
+                }
+                
+                if (zoneConfigData.zone_y1_ratio >= zoneConfigData.zone_y2_ratio) {
+                    alert('❌ Lỗi: Vùng dưới (Y2) phải lớn hơn vùng trên (Y1)');
+                    return;
+                }
+                
+                const response = await fetch(`${apiBaseUrl}/api/set_zone_config`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(zoneConfigData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('✅ Đã lưu cấu hình vùng thành công!');
+                    } else {
+                        alert('❌ Lỗi khi lưu cấu hình vùng: ' + result.error);
+                    }
+                } else {
+                    alert('❌ Lỗi kết nối khi lưu cấu hình vùng');
+                }
+            } catch (error) {
+                console.error('Lỗi khi lưu cấu hình vùng:', error);
+                alert('❌ Lỗi khi lưu cấu hình vùng: ' + error.message);
+            }
+        }
+
+        // Tải cấu hình vùng
+        async function loadZoneConfig() {
+            if (!isConnected || !apiBaseUrl) return;
+            
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/get_zone_config`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.zone_config) {
+                        const zone = data.zone_config;
+                        document.getElementById('zone-x1-ratio').value = Math.round(zone.zone_x1_ratio * 100);
+                        document.getElementById('zone-y1-ratio').value = Math.round(zone.zone_y1_ratio * 100);
+                        document.getElementById('zone-x2-ratio').value = Math.round(zone.zone_x2_ratio * 100);
+                        document.getElementById('zone-y2-ratio').value = Math.round(zone.zone_y2_ratio * 100);
+                        alert('✅ Đã tải cấu hình vùng hiện tại từ server');
+                    }
+                } else {
+                    alert('❌ Không thể tải cấu hình vùng từ server');
+                }
+            } catch (error) {
+                console.error('Lỗi khi tải cấu hình vùng:', error);
+                alert('❌ Lỗi khi tải cấu hình vùng: ' + error.message);
+            }
+        }
+
+        // Reset cấu hình vùng về mặc định
+        function resetZoneConfig() {
+            if (confirm('Bạn có chắc muốn reset vùng giám sát về mặc định?')) {
+                document.getElementById('zone-x1-ratio').value = 20;
+                document.getElementById('zone-y1-ratio').value = 10;
+                document.getElementById('zone-x2-ratio').value = 80;
+                document.getElementById('zone-y2-ratio').value = 90;
+                alert('✅ Đã reset cấu hình vùng về mặc định. Nhấn "Lưu cấu hình vùng" để áp dụng.');
+            }
+        }
+
+        // Cập nhật biểu đồ
+        function updateChart(data) {
+            const now = new Date();
+            const timeLabel = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+            
+            // Chỉ thêm dữ liệu nếu có giá trị hợp lệ
+            if (data.bpm > 0) {
+                hrData.push(data.bpm);
+            } else {
+                hrData.push(null);
+            }
+            
+            if (data.spo2 > 0) {
+                spo2Data.push(data.spo2);
+            } else {
+                spo2Data.push(null);
+            }
+            
+            // Giới hạn số lượng điểm dữ liệu
+            if (hrData.length > 15) hrData.shift();
+            if (spo2Data.length > 15) spo2Data.shift();
+            
+            // Cập nhật labels
+            chart.data.labels.push(timeLabel);
+            if (chart.data.labels.length > 15) chart.data.labels.shift();
+            
+            chart.update('none');
+        }
+        
+        // Thêm dữ liệu vào lịch sử
+        function addToHistory(data) {
+            const now = new Date();
+            const historyItem = {
+                timestamp: now.toISOString(),
+                time: now.toLocaleTimeString('vi-VN'),
+                posture: data.posture_status,
+                bpm: data.bpm,
+                spo2: data.spo2,
+                status: data.tracking_active ? 'Đang giám sát' : 'Vắng mặt',
+                alert: data.alert_active || data.long_incorrect_alert || data.long_sitting_alert ? 'YES' : 'NO'
+            };
+            
+            historyData.unshift(historyItem);
+            if (historyData.length > 20) {
+                historyData.pop();
+            }
+            
+            updateHistoryTable();
+        }
+        
+        // Cập nhật bảng lịch sử
+        function updateHistoryTable() {
+            const tbody = document.getElementById('history-table-body');
+            
+            if (historyData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #94a3b8;">Chưa có dữ liệu lịch sử</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = historyData.map(record => {
+                let postureText = '';
+                let postureClass = '';
+                if (record.posture === 0) {
+                    postureText = 'Correct';
+                    postureClass = 'posture-good-indicator';
+                } else if (record.posture === 1) {
+                    postureText = 'Incorrect';
+                    postureClass = 'posture-bad-indicator';
+                } else if (record.posture === 3) {
+                    postureText = 'Long Incorrect';
+                    postureClass = 'posture-long-incorrect-indicator';
+                } else if (record.posture === 4) {
+                    postureText = 'Long Sitting';
+                    postureClass = 'posture-long-sitting-indicator';
+                } else {
+                    postureText = 'Absent';
+                    postureClass = 'posture-na-indicator';
+                }
+                
+                return `
+                    <tr>
+                        <td>${record.time}</td>
+                        <td>
+                            <span class="posture-indicator ${postureClass}"></span>
+                            ${postureText}
+                        </td>
+                        <td>${record.bpm > 0 ? record.bpm : '--'}</td>
+                        <td>${record.spo2 > 0 ? record.spo2.toFixed(1) + '%' : '--'}</td>
+                        <td>${record.status}</td>
+                        <td>${record.alert}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // Reset vùng giám sát
+        async function resetMonitoringZone() {
+            if (!isConnected || !apiBaseUrl) return;
+            
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/reset_alerts`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    alert('✅ Đã reset vùng giám sát thành công! Hệ thống sẽ làm mới nhận diện.');
+                    updateData();
+                } else {
+                    alert('❌ Lỗi khi reset vùng giám sát');
+                }
+            } catch (error) {
+                console.error('Lỗi khi reset vùng giám sát:', error);
+                alert('❌ Lỗi khi reset vùng giám sát: ' + error.message);
+            }
+        }
+        
+        // Export lịch sử
+        async function exportHistory() {
+            if (!isConnected || !apiBaseUrl) return;
+            
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/export_history`);
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `health_data_${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    alert('❌ Lỗi khi xuất dữ liệu');
+                }
+            } catch (error) {
+                console.error('Lỗi khi export:', error);
+                alert('❌ Lỗi khi export: ' + error.message);
+            }
+        }
+        
+        // Lấy ảnh mẫu
+        async function loadSampleImages() {
+            if (!isConnected || !apiBaseUrl) return;
+            
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/get_sample_images`);
+                
+                if (!response.ok) throw new Error('Không thể tải ảnh mẫu');
+                
+                const data = await response.json();
+                
+                if (data.success && data.sample_images) {
+                    const correctImages = data.sample_images.filter(img => img.posture_type === 'correct');
+                    const incorrectImages = data.sample_images.filter(img => img.posture_type === 'incorrect');
+                    
+                    // Hiển thị ảnh tư thế đúng
+                    const correctContainer = document.getElementById('correct-posture-container');
+                    const correctImg = document.getElementById('correct-posture-image');
+                    const correctTime = document.getElementById('correct-image-time');
+                    
+                    if (correctImages.length > 0) {
+                        const latestCorrect = correctImages[0];
+                        correctImg.src = `${apiBaseUrl}${latestCorrect.url}?t=${new Date().getTime()}`;
+                        correctImg.style.display = 'block';
+                        correctContainer.querySelector('div').style.display = 'none';
+                        correctTime.textContent = latestCorrect.timestamp;
+                    } else {
+                        correctImg.style.display = 'none';
+                        correctContainer.querySelector('div').style.display = 'block';
+                        correctTime.textContent = '--';
+                    }
+                    
+                    // Hiển thị ảnh tư thế sai
+                    const incorrectContainer = document.getElementById('incorrect-posture-container');
+                    const incorrectImg = document.getElementById('incorrect-posture-image');
+                    const incorrectTime = document.getElementById('incorrect-image-time');
+                    
+                    if (incorrectImages.length > 0) {
+                        const latestIncorrect = incorrectImages[0];
+                        incorrectImg.src = `${apiBaseUrl}${latestIncorrect.url}?t=${new Date().getTime()}`;
+                        incorrectImg.style.display = 'block';
+                        incorrectContainer.querySelector('div').style.display = 'none';
+                        incorrectTime.textContent = latestIncorrect.timestamp;
+                    } else {
+                        incorrectImg.style.display = 'none';
+                        incorrectContainer.querySelector('div').style.display = 'block';
+                        incorrectTime.textContent = '--';
+                    }
+                }
+            } catch (error) {
+                console.error('Lỗi khi tải ảnh mẫu:', error);
+            }
+        }
+        
+        // Lưu cấu hình thời gian
+        async function saveConfig() {
+            if (!isConnected || !apiBaseUrl) return;
+            
+            try {
+                const configData = {
+                    incorrect_posture_threshold: parseInt(document.getElementById('incorrect-posture-threshold').value),
+                    long_incorrect_threshold: parseInt(document.getElementById('long-incorrect-threshold').value),
+                    long_sitting_threshold: parseInt(document.getElementById('long-sitting-threshold').value)
+                };
+                
+                const response = await fetch(`${apiBaseUrl}/api/set_config`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(configData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('✅ Đã lưu cấu hình thành công!');
+                    } else {
+                        alert('❌ Lỗi khi lưu cấu hình: ' + result.error);
+                    }
+                } else {
+                    alert('❌ Lỗi kết nối khi lưu cấu hình');
+                }
+            } catch (error) {
+                console.error('Lỗi khi lưu cấu hình:', error);
+                alert('❌ Lỗi khi lưu cấu hình: ' + error.message);
+            }
+        }
+        
+        // Tải cấu hình hiện tại
+        async function loadConfig() {
+            if (!isConnected || !apiBaseUrl) return;
+            
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/get_config`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.config) {
+                        document.getElementById('incorrect-posture-threshold').value = data.config.incorrect_posture_threshold;
+                        document.getElementById('long-incorrect-threshold').value = data.config.long_incorrect_threshold;
+                        document.getElementById('long-sitting-threshold').value = data.config.long_sitting_threshold;
+                        alert('✅ Đã tải cấu hình hiện tại từ server');
+                    }
+                } else {
+                    alert('❌ Không thể tải cấu hình từ server');
+                }
+            } catch (error) {
+                console.error('Lỗi khi tải cấu hình:', error);
+                alert('❌ Lỗi khi tải cấu hình: ' + error.message);
+            }
+        }
+        
+        // Lưu cài đặt
+        function saveSettings() {
+            localStorage.setItem('hrMin', document.getElementById('hr-min').value);
+            localStorage.setItem('hrMax', document.getElementById('hr-max').value);
+            localStorage.setItem('spo2Min', document.getElementById('spo2-min').value);
+            localStorage.setItem('refreshInterval', document.getElementById('refresh-interval').value);
+            
+            if (isConnected) {
+                startAutoRefresh();
+            }
+            
+            alert('✅ Đã lưu cài đặt thành công!');
+        }
+        
+        // Tải cài đặt
+        function loadSettings() {
+            const savedApiUrl = localStorage.getItem('apiBaseUrl');
+            if (savedApiUrl) {
+                document.getElementById('api-url').value = savedApiUrl;
+                apiBaseUrl = savedApiUrl;
+            }
+            
+            const savedHrMin = localStorage.getItem('hrMin');
+            if (savedHrMin) document.getElementById('hr-min').value = savedHrMin;
+            
+            const savedHrMax = localStorage.getItem('hrMax');
+            if (savedHrMax) document.getElementById('hr-max').value = savedHrMax;
+            
+            const savedSpo2Min = localStorage.getItem('spo2Min');
+            if (savedSpo2Min) document.getElementById('spo2-min').value = savedSpo2Min;
+            
+            const savedRefreshInterval = localStorage.getItem('refreshInterval');
+            if (savedRefreshInterval) document.getElementById('refresh-interval').value = savedRefreshInterval;
+        }
+
+        // Bắt đầu auto-refresh
+        function startAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            refreshInterval = parseInt(document.getElementById('refresh-interval').value);
+            autoRefreshInterval = setInterval(updateData, refreshInterval);
+            
+            // Health check định kỳ
+            setInterval(async () => {
+                if (!isConnected) {
+                    const isHealthy = await healthCheck();
+                    if (isHealthy) {
+                        console.log('Phát hiện server đã online, kết nối lại...');
+                        updateConnectionStatus(true, '✅ Đã khôi phục kết nối');
+                        startAutoRefresh();
+                    }
+                }
+            }, 10000);
+            
+            // Cập nhật ngay lập tức
+            updateData();
+            loadSampleImages();
+            loadConfig();
+            loadZoneConfig();
+        }
+
+        // Chatbot functions
+        function toggleChatbot() {
+            const chatbot = document.getElementById('chatbot-container');
+            chatbot.classList.toggle('open');
+        }
+
+        function addMessage(text, isUser = false) {
+            const messagesContainer = document.getElementById('chatbot-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'message-user' : 'message-bot'}`;
+            messageDiv.textContent = text;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function processUserMessage(message) {
+            addMessage(message, true);
+            
+            // Xử lý tin nhắn dựa trên vai trò người dùng
+            setTimeout(() => {
+                let response = '';
+                
+                if (currentRole === 'employee') {
+                    // Phản hồi cho nhân viên
+                    if (message.toLowerCase().includes('tư thế') || message.toLowerCase().includes('posture')) {
+                        const postureStatus = document.getElementById('posture-value').textContent;
+                        response = `Hiện tại tư thế của bạn là: ${postureStatus}. `;
+                        
+                        if (postureStatus.includes('SAI')) {
+                            response += "Tôi khuyên bạn nên ngồi thẳng lưng, hai chân chạm đất và màn hình ngang tầm mắt.";
+                        } else if (postureStatus.includes('ĐÚNG')) {
+                            response += "Tuyệt vời! Bạn đang duy trì tư thế ngồi đúng cách.";
+                        }
+                    } else if (message.toLowerCase().includes('nhịp tim') || message.toLowerCase().includes('heart rate') || message.toLowerCase().includes('bpm')) {
+                        const hrValue = document.getElementById('hr-value').textContent;
+                        response = `Nhịp tim hiện tại của bạn là: ${hrValue} bpm. `;
+                        
+                        if (hrValue !== '--') {
+                            const hr = parseInt(hrValue);
+                            if (hr < 60) {
+                                response += "Nhịp tim của bạn hơi thấp. Hãy thử vận động nhẹ nhàng.";
+                            } else if (hr > 100) {
+                                response += "Nhịp tim của bạn hơi cao. Hãy thử hít thở sâu và thư giãn.";
+                            } else {
+                                response += "Nhịp tim của bạn trong phạm vi bình thường.";
+                            }
+                        }
+                    } else if (message.toLowerCase().includes('spo2') || message.toLowerCase().includes('oxygen')) {
+                        const spo2Value = document.getElementById('spo2-value').textContent;
+                        response = `Chỉ số SpO₂ hiện tại của bạn là: ${spo2Value}%. `;
+                        
+                        if (spo2Value !== '--') {
+                            const spo2 = parseFloat(spo2Value);
+                            if (spo2 < 95) {
+                                response += "Mức oxy trong máu của bạn hơi thấp. Hãy đảm bảo phòng làm việc thông thoáng.";
+                            } else {
+                                response += "Mức oxy trong máu của bạn trong phạm vi bình thường.";
+                            }
+                        }
+                    } else if (message.toLowerCase().includes('lời khuyên') || message.toLowerCase().includes('advice')) {
+                        response = "Dựa trên dữ liệu sức khỏe của bạn, tôi khuyên:\n";
+                        response += "1. Nghỉ ngơi 5 phút sau mỗi giờ làm việc\n";
+                        response += "2. Duy trì tư thế ngồi đúng: lưng thẳng, mắt ngang màn hình\n";
+                        response += "3. Uống đủ nước trong ngày\n";
+                        response += "4. Thực hiện các bài tập thư giãn mắt và cổ tay";
+                    } else {
+                        response = "Tôi có thể giúp bạn với thông tin về tư thế, nhịp tim, SpO₂ hoặc đưa ra lời khuyên sức khỏe. Bạn muốn biết điều gì?";
+                    }
+                } else {
+                    // Phản hồi cho quản lý
+                    if (message.toLowerCase().includes('thống kê') || message.toLowerCase().includes('statistics')) {
+                        const sittingTime = document.getElementById('sitting-time-display').textContent;
+                        const badPostureTime = document.getElementById('bad-posture-time-display').textContent;
+                        const continuousSittingTime = document.getElementById('continuous-sitting-time-display').textContent;
+                        
+                        response = `Thống kê hiện tại:\n`;
+                        response += `- Thời gian ngồi: ${sittingTime}\n`;
+                        response += `- Thời gian sai tư thế: ${badPostureTime}\n`;
+                        response += `- Thời gian ngồi liên tục: ${continuousSittingTime}\n\n`;
+                        
+                        if (badPostureTime !== '00:00') {
+                            response += `Cảnh báo: Nhân viên đã sai tư thế trong ${badPostureTime}. Cần nhắc nhở về tư thế làm việc.`;
+                        } else if (continuousSittingTime !== '00:00') {
+                            const mins = parseInt(continuousSittingTime.split(':')[0]);
+                            if (mins > 45) {
+                                response += `Cảnh báo: Nhân viên đã ngồi liên tục ${continuousSittingTime}. Khuyến nghị nghỉ ngơi.`;
+                            }
+                        } else {
+                            response += "Tình trạng sức khỏe nhân viên đang tốt.";
+                        }
+                    } else if (message.toLowerCase().includes('hiệu suất') || message.toLowerCase().includes('performance')) {
+                        const fps = document.getElementById('processing-fps').textContent;
+                        const connectionStatus = document.getElementById('connection-health').textContent;
+                        
+                        response = `Thông tin hệ thống:\n`;
+                        response += `- FPS xử lý: ${fps}\n`;
+                        response += `- Trạng thái kết nối: ${connectionStatus}\n`;
+                        response += `- Thời gian hoạt động: ${formatTime(webSittingTime + webMovingTime)}`;
+                    } else if (message.toLowerCase().includes('cảnh báo') || message.toLowerCase().includes('alert')) {
+                        const postureStatus = document.getElementById('posture-value').textContent;
+                        
+                        response = `Trạng thái cảnh báo hiện tại:\n`;
+                        response += `- Tư thế: ${postureStatus}\n`;
+                        
+                        if (postureStatus.includes('SAI LÂU')) {
+                            response += "⚠️ CẢNH BÁO: Nhân viên đã sai tư thế trong thời gian dài!";
+                        } else if (postureStatus.includes('NGỒI LÂU')) {
+                            response += "⏰ CẢNH BÁO: Nhân viên đã ngồi làm việc quá lâu!";
+                        } else {
+                            response += "✅ Không có cảnh báo nào đang hoạt động.";
+                        }
+                    } else {
+                        response = "Tôi có thể cung cấp thông tin thống kê, hiệu suất hệ thống và trạng thái cảnh báo. Bạn muốn biết điều gì?";
+                    }
+                }
+                
+                addMessage(response);
+            }, 1000);
+        }
+
+        // Login functions
+        function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            if (!username || !password) {
+                alert('Vui lòng nhập đầy đủ thông tin đăng nhập');
+                return;
+            }
+            
+            // Lưu thông tin người dùng
+            currentUser = {
+                username: username,
+                role: currentRole
+            };
+            
+            // Cập nhật giao diện theo vai trò
+            document.body.className = `user-${currentRole}`;
+            document.getElementById('user-role-display').textContent = currentRole === 'manager' ? 'Quản lý' : 'Nhân viên';
+            document.getElementById('user-role-display').className = `user-role ${currentRole === 'manager' ? 'role-manager' : 'role-employee'}`;
+            
+            // Chuyển đến dashboard
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            
+            // Thử kết nối nếu có API URL
+            if (apiBaseUrl) {
+                testConnection();
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            
+            // Dừng auto-refresh
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            // Đóng chatbot
+            document.getElementById('chatbot-container').classList.remove('open');
+        }
+
+        function selectRole(role) {
+            currentRole = role;
+            document.querySelectorAll('.role-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+        
+        // Khởi tạo
+        document.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            loadSettings();
+            
+            // Thiết lập event listeners
+            document.getElementById('test-connection').addEventListener('click', testConnection);
+            document.getElementById('reset-zone').addEventListener('click', resetMonitoringZone);
+            document.getElementById('save-settings').addEventListener('click', saveSettings);
+            document.getElementById('refresh-history').addEventListener('click', updateData);
+            document.getElementById('refresh-data').addEventListener('click', updateData);
+            document.getElementById('export-history').addEventListener('click', exportHistory);
+            document.getElementById('refresh-samples').addEventListener('click', loadSampleImages);
+            document.getElementById('save-config').addEventListener('click', saveConfig);
+            document.getElementById('load-config').addEventListener('click', loadConfig);
+            
+            // Thêm event listeners mới cho vùng
+            document.getElementById('save-zone-config').addEventListener('click', saveZoneConfig);
+            document.getElementById('load-zone-config').addEventListener('click', loadZoneConfig);
+            document.getElementById('reset-zone-config').addEventListener('click', resetZoneConfig);
+            
+            // Cho phép Enter để test connection
+            document.getElementById('api-url').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    testConnection();
+                }
+            });
+            
+            // Chatbot events
+            document.getElementById('chatbot-toggle').addEventListener('click', toggleChatbot);
+            document.getElementById('chatbot-close').addEventListener('click', toggleChatbot);
+            document.getElementById('chatbot-send').addEventListener('click', function() {
+                const input = document.getElementById('chatbot-input');
+                if (input.value.trim()) {
+                    processUserMessage(input.value.trim());
+                    input.value = '';
+                }
+            });
+            
+            document.getElementById('chatbot-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('chatbot-send').click();
+                }
+            });
+            
+            // Login events
+            document.getElementById('login-btn').addEventListener('click', login);
+            document.getElementById('logout-btn').addEventListener('click', logout);
+            document.querySelectorAll('.role-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    selectRole(this.getAttribute('data-role'));
+                });
+            });
+            
+            // Auto-reconnect khi online
+            window.addEventListener('online', () => {
+                console.log('Mạng đã online, thử kết nối lại...');
+                if (apiBaseUrl && !isConnected) {
+                    testConnection();
+                }
+            });
+            
+            // Theo dõi mạng
+            window.addEventListener('offline', () => {
+                console.log('Mạng bị mất kết nối');
+                updateConnectionStatus(false, '🌐 Mất kết nối internet');
+            });
+            
+            // Ban đầu disable các nút
+            document.getElementById('reset-zone').disabled = true;
+            document.getElementById('export-history').disabled = true;
+            document.getElementById('refresh-history').disabled = true;
+            document.getElementById('refresh-data').disabled = true;
+            document.getElementById('refresh-samples').disabled = true;
+            document.getElementById('save-zone-config').disabled = true;
+            document.getElementById('load-zone-config').disabled = true;
+            document.getElementById('reset-zone-config').disabled = true;
+            
+            console.log('🚀 Hệ thống Phân quyền với Chatbot đã sẵn sàng!');
+            console.log('💡 Đăng nhập để trải nghiệm tính năng theo vai trò');
+        });
+    </script>
+</body>
+</html>

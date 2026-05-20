@@ -1,0 +1,20 @@
+# Thư mục và file không cần thiết
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# File lớn vượt quá giới hạn 100MB của GitHub
+*.exe
+*.msi
+"DasaiMochi/gif pack (color).zip"
+"DasaiMochi/tạo gif (CUSTOM GIF GENERATOR FOR MOCHI).zip"
+*.zip
+
+# Các file mô hình AI lớn (nếu không muốn upload)
+# *.pt
+# *.onnx
+# *.h5
+
+# Thư mục dữ liệu / ảnh đã lưu
+trainAI/saved_images/
+trainAI/dataset/
