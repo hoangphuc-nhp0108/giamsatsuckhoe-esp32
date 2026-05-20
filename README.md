@@ -41,15 +41,18 @@ graph TD
 ```
 
 **2. Sơ đồ Khối Phần cứng (Hardware Block Diagram)**
-Mô tả cách các linh kiện kết nối với vi điều khiển trung tâm:
+Tổng quan các khối và chuẩn giao tiếp trong hệ thống:
 
 ```mermaid
 graph LR
-    A["Nguồn 5V/Pin"] -->|"Cấp nguồn"| B("ESP32-S3 WROOM")
-    C["Module Camera 2MP"] -->|"Tích hợp sẵn"| B
-    D["Cảm biến MAX30102"] <-->|"Giao tiếp I2C"| B
-    E["Màn hình OLED SH1106"] <-->|"Giao tiếp I2C"| B
-    B -->|"Tín hiệu PWM"| F["Còi chíp Buzzer"]
+    Left["KHỐI THIẾT BỊ CHẤP HÀNH<br>(Còi báo, Led, màn LCD)"]
+    Center["KHỐI XỬ LÝ<br>(ESP32-CAM)"]
+    Right["KHỐI CẢM BIẾN<br>(Sensor, Camera)"]
+    Bottom["KHỐI KẾT NỐI, TRUYỀN THÔNG<br>(WiFi, Cloud Platform, App Mobile)"]
+
+    Left <-- Center
+    Center <--> Right
+    Center <-->|"wifi"| Bottom
 ```
 
 ## 📂 Cấu trúc Repository
