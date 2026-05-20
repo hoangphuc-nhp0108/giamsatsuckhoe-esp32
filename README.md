@@ -43,17 +43,7 @@ graph TD
 **2. Sơ đồ Khối Phần cứng (Hardware Block Diagram)**
 Tổng quan các khối và chuẩn giao tiếp trong hệ thống:
 
-```mermaid
-flowchart LR
-    Left["KHỐI THIẾT BỊ CHẤP HÀNH<br>(Còi báo, Led, màn LCD)"]
-    Center["KHỐI XỬ LÝ<br>(ESP32-CAM)"]
-    Right["KHỐI CẢM BIẾN<br>(Sensor, Camera)"]
-    Bottom["KHỐI KẾT NỐI, TRUYỀN THÔNG<br>(WiFi, Cloud Platform, App Mobile)"]
-
-    Left <-- Center
-    Center <--> Right
-    Center <-->|wifi| Bottom
-```
+![Sơ đồ Khối Phần cứng](Docs/Diagrams/Screenshot%202026-05-20%20185034.png)
 
 ## 📂 Cấu trúc Repository
 
