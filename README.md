@@ -2,7 +2,7 @@
 
 Hệ thống IoT tích hợp Trí tuệ nhân tạo (AI) giúp theo dõi và cảnh báo tư thế ngồi làm việc, học tập nhằm bảo vệ sức khỏe cột sống. Dự án sử dụng Camera trên vi điều khiển **ESP32-S3** để thu thập hình ảnh và máy chủ xử lý AI (**YOLOv11-pose** kết hợp **SVM**) để phân tích tư thế thời gian thực.
 
-![Banner/Demo](Docs/ảnh%20đóng%20hộp/Board.jpg) *(Thay đổi đường dẫn ảnh minh họa nếu cần)*
+![Banner/Demo](Docs/Images/Hardware_Components/Main_Board.jpg) *(Thay đổi đường dẫn ảnh minh họa nếu cần)*
 
 ## 🌟 Tính năng chính
 
